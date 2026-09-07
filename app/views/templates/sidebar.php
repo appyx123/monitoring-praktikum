@@ -17,10 +17,6 @@
 
     <div class="sidebar">
       <div class="user-panel mt-3 pb-3 mb-3 d-flex">
-        <div class="image">
-          <?php $sidebarFoto = !empty($_SESSION['photo_profil']) ? BASEURL . '/' . $_SESSION['photo_profil'] : BASEURL . '/public/img/user.webp'; ?>
-          <img src="<?= e($sidebarFoto) ?>" class="img-circle elevation-2" alt="User Image" style="width: 35px; height: 35px; object-fit: cover;">
-        </div>
         <div class="info">
           <?php if ($_SESSION['role'] == 'Admin') : ?>
             <a href="<?= BASEURL ?>/user/profil" style="text-decoration:none;"><?= e($nama_user) ?></a>

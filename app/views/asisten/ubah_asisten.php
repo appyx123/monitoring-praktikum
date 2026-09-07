@@ -19,7 +19,7 @@
                     <input type="password" name="password" id="passwordInput" class="form-control" 
                            placeholder="Kosongkan jika tidak ingin mengubah password">
                     <div class="input-group-append">
-                        <button class="btn btn-outline-secondary" type="button" onclick="window.togglePwdModal(this)">
+                        <button class="btn btn-outline-secondary" type="button" id="togglePassword">
                             <i class="fas fa-eye"></i>
                         </button>
                     </div>
@@ -93,18 +93,6 @@
     <?php endif; ?>
 
 <script>
-window.togglePwdModal = function(btn) {
-    const pwdInput = document.getElementById('passwordInput');
-    const icon = btn.querySelector('i');
-    if (pwdInput.type === 'password') {
-        pwdInput.type = 'text';
-        icon.classList.replace('fa-eye', 'fa-eye-slash');
-    } else {
-        pwdInput.type = 'password';
-        icon.classList.replace('fa-eye-slash', 'fa-eye');
-    }
-};
-
 // Validasi Form saat Submit (Ukuran & Format File)
 document.getElementById('formUbahDataAsisten')?.addEventListener('submit', function(e) {
     const photoProfile = document.querySelector('input[name="photo_profil"]');

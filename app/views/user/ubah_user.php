@@ -25,8 +25,8 @@
                     <div class="input-group">
                         <input id="passwordInput" type="password" name="password" class="form-control" 
                                placeholder="Kosongkan jika tidak ingin ganti password">
-                        <button id="togglePassword" type="button" class="btn btn-outline-secondary">
-                            <i class="fa fa-eye" id="eyeIcon"></i>
+                        <button type="button" class="btn btn-outline-secondary" onclick="window.togglePwdModalUser(this)">
+                            <i class="fa fa-eye"></i>
                         </button>
                     </div>
                     <small class="text-muted italic">Sistem menggunakan enkripsi SHA-256 otomatis.</small>
@@ -83,16 +83,15 @@
 </div>
 
 <script>
-    // Toggle Password
-    document.getElementById('togglePassword')?.addEventListener('click', function () {
-        const passwordInput = document.getElementById('passwordInput');
-        const icon = document.getElementById('eyeIcon');
-        if (passwordInput.type === 'password') {
-            passwordInput.type = 'text';
+    window.togglePwdModalUser = function(btn) {
+        const pwdInput = document.getElementById('passwordInput');
+        const icon = btn.querySelector('i');
+        if (pwdInput.type === 'password') {
+            pwdInput.type = 'text';
             icon.classList.replace('fa-eye', 'fa-eye-slash');
         } else {
-            passwordInput.type = 'password';
+            pwdInput.type = 'password';
             icon.classList.replace('fa-eye-slash', 'fa-eye');
         }
-    });
+    };
 </script>

@@ -26,7 +26,7 @@
                 <div class="input-group">
                     <input type="password" name="password" id="passwordInput" class="form-control" placeholder="(Opsional) Default: iclabs-umi">
                     <div class="input-group-append">
-                        <button class="btn btn-outline-secondary" type="button" onclick="window.togglePwdModal(this)">
+                        <button class="btn btn-outline-secondary" type="button" id="togglePassword">
                             <i class="fas fa-eye"></i>
                         </button>
                     </div>
@@ -90,18 +90,6 @@
 <?php unset($_SESSION['old']); ?>
 
 <script>
-window.togglePwdModal = function(btn) {
-    const pwdInput = document.getElementById('passwordInput');
-    const icon = btn.querySelector('i');
-    if (pwdInput.type === 'password') {
-        pwdInput.type = 'text';
-        icon.classList.replace('fa-eye', 'fa-eye-slash');
-    } else {
-        pwdInput.type = 'password';
-        icon.classList.replace('fa-eye-slash', 'fa-eye');
-    }
-};
-
 // Validasi file upload real-time
 function validateImageFile(input) {
     const allowedTypes = ['image/jpeg', 'image/png', 'image/gif'];
