@@ -10,7 +10,7 @@ class Database {
     private $stmt;
 
     public function __construct(){
-        $dsn = 'mysql:unix_socket=/Applications/XAMPP/xamppfiles/var/mysql/mysql.sock;dbname='.$this->db_name;
+        $dsn = 'mysql:host=' . $this->host . ';dbname=' . $this->db_name;
 
         $option = [
             PDO::ATTR_PERSISTENT => true,
