@@ -88,7 +88,7 @@ class Controller{
         }
     }
 
-        public function prosesUpload($inputName, $targetDirDB, $customName = null) {
+    public function prosesUpload($inputName, $targetDirDB, $customName = null) {
         $file = $_FILES[$inputName] ?? null;
         
         if (!$file) return ['status' => false, 'pesan' => 'File tidak ditemukan'];
@@ -114,100 +114,54 @@ class Controller{
             return ['status' => false, 'pesan' => 'Ukuran file maksimal 5MB'];
         }
 
-        // --- SETTING EKSTENSI OUTPUT JADI WEBP ---
+        // Nama file unik
         $randomHash = bin2hex(random_bytes(8));
-        $namaFileBaru = ($customName ? $customName . '_' . $randomHash : bin2hex(random_bytes(16))) . '.webp';
+        $namaFileBaru = ($customName ? $customName . '_' . $randomHash : bin2hex(random_bytes(16))) . '.' . $ekstensiFile;
+        $cleanDir = trim(str_replace(['public/', '\\'], ['', '/'], $targetDirDB), '/');
+        $s3Key = ($cleanDir !== '' ? $cleanDir . '/' : '') . $namaFileBaru;
 
-        // Path System (Naik 2 level ke project root)
-        $projectRoot = dirname(dirname(__DIR__));
-        $targetDirSystem = $projectRoot . DIRECTORY_SEPARATOR . str_replace('/', DIRECTORY_SEPARATOR, $targetDirDB);
+        try {
+            $s3 = new \Aws\S3\S3Client([
+                'version' => 'latest',
+                'region'  => defined('B2_REGION') && B2_REGION ? B2_REGION : 'us-east-005',
+                'endpoint' => defined('B2_ENDPOINT') && B2_ENDPOINT ? B2_ENDPOINT : 'https://s3.us-east-005.backblazeb2.com',
+                'use_path_style_endpoint' => true,
+                'credentials' => [
+                    'key'    => defined('B2_KEY_ID') ? B2_KEY_ID : '',
+                    'secret' => defined('B2_APPLICATION_KEY') ? B2_APPLICATION_KEY : '',
+                ],
+            ]);
 
-        // Buat folder jika belum ada
-        if (!file_exists($targetDirSystem)) mkdir($targetDirSystem, 0755, true);
+            $bucket = defined('B2_BUCKET_NAME') ? B2_BUCKET_NAME : '';
+            $mimeType = mime_content_type($file['tmp_name']) ?: 'application/octet-stream';
 
-        $fullPath = $targetDirSystem . DIRECTORY_SEPARATOR . $namaFileBaru;
+            $result = $s3->putObject([
+                'Bucket'      => $bucket,
+                'Key'         => $s3Key,
+                'SourceFile'  => $file['tmp_name'],
+                'ContentType' => $mimeType,
+                'ACL'         => 'public-read'
+            ]);
 
-        $tmpName = $file['tmp_name'];
-        
-        // --- JIKA SUDAH WEBP, LANGSUNG PINDAH ---
-        if ($ekstensiFile === 'webp') {
-            if (move_uploaded_file($tmpName, $fullPath)) {
-                chmod($fullPath, 0644);
-                return [
-                    'status' => true, 
-                    'nama_file' => str_replace(DIRECTORY_SEPARATOR, '/', $targetDirDB) . '/' . $namaFileBaru
-                ];
+            // Tentukan URL publik Backblaze B2
+            if (defined('B2_PUBLIC_URL') && !empty(B2_PUBLIC_URL)) {
+                $publicUrl = rtrim(B2_PUBLIC_URL, '/') . '/' . $s3Key;
+            } else {
+                $region = defined('B2_REGION') && B2_REGION ? B2_REGION : 'us-east-005';
+                $publicUrl = $result['ObjectURL'] ?? "https://{$bucket}.s3.{$region}.backblazeb2.com/{$s3Key}";
             }
-            return ['status' => false, 'pesan' => 'Gagal mengupload file WebP'];
+
+            return [
+                'status'    => true,
+                'nama_file' => $publicUrl
+            ];
+        } catch (\Aws\Exception\AwsException $e) {
+            error_log('Backblaze B2 Upload AWS Exception: ' . $e->getMessage());
+            return ['status' => false, 'pesan' => 'Gagal upload ke Backblaze B2: ' . $e->getAwsErrorMessage()];
+        } catch (\Exception $e) {
+            error_log('Backblaze B2 Upload Error: ' . $e->getMessage());
+            return ['status' => false, 'pesan' => 'Gagal upload: ' . $e->getMessage()];
         }
-
-        // --- PROSES KONVERSI GAMBAR (GD LIBRARY) UNTUK JPG/PNG ---
-        $image = null;
-
-        if ($ekstensiFile === 'jpg' || $ekstensiFile === 'jpeg') {
-            $image = @imagecreatefromjpeg($tmpName);
-        } elseif ($ekstensiFile === 'png') {
-            $image = @imagecreatefrompng($tmpName);
-            // Handle support transparansi untuk file PNG
-            if ($image !== false) {
-                imagepalettetotruecolor($image);
-                imagealphablending($image, false);
-                imagesavealpha($image, true);
-            }
-        } elseif ($ekstensiFile === 'gif') {
-            $image = @imagecreatefromgif($tmpName);
-            if ($image !== false) {
-                imagepalettetotruecolor($image);
-                imagealphablending($image, false);
-                imagesavealpha($image, true);
-            }
-        }
-
-        // Jika berhasil di-load ke memory
-        if ($image !== false && $image !== null) {
-            if (!function_exists('imagewebp')) {
-                // FALLBACK: Simpan sesuai ekstensi asli jika imagewebp tidak ada
-                $namaFileBaru = ($customName ? $customName . '_' . $randomHash : bin2hex(random_bytes(16))) . '.' . $ekstensiFile;
-                $fullPath = $targetDirSystem . DIRECTORY_SEPARATOR . $namaFileBaru;
-                
-                $berhasil = false;
-                if ($ekstensiFile === 'jpg' || $ekstensiFile === 'jpeg') {
-                    $berhasil = imagejpeg($image, $fullPath, 80);
-                } elseif ($ekstensiFile === 'png') {
-                    $berhasil = imagepng($image, $fullPath, 8); 
-                } elseif ($ekstensiFile === 'gif') {
-                    $berhasil = imagegif($image, $fullPath);
-                }
-                
-                if ($berhasil) {
-                    imagedestroy($image);
-                    chmod($fullPath, 0644);
-                    return [
-                        'status' => true, 
-                        'nama_file' => str_replace(DIRECTORY_SEPARATOR, '/', $targetDirDB) . '/' . $namaFileBaru
-                    ];
-                } else {
-                    imagedestroy($image);
-                    return ['status' => false, 'pesan' => 'Gagal menyimpan gambar (Fallback)'];
-                }
-            }
-            
-            // Konversi dan simpan gambar sebagai file .webp dengan kualitas 80%
-            if (imagewebp($image, $fullPath, 80)) {
-                imagedestroy($image); // Hapus memori sementara
-                chmod($fullPath, 0644);
-                
-                // Return path output baru (.webp) untuk disimpan ke database
-                return [
-                    'status' => true, 
-                    'nama_file' => str_replace(DIRECTORY_SEPARATOR, '/', $targetDirDB) . '/' . $namaFileBaru
-                ];
-            }
-            imagedestroy($image);
-            return ['status' => false, 'pesan' => 'Gagal mengonversi gambar ke WebP'];
-        }
-
-        return ['status' => false, 'pesan' => 'File gambar rusak atau tidak valid'];
     }
 }
 ?>

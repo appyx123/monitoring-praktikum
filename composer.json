@@ -1,0 +1,9 @@
+{
+    "name": "fikom/monitoring-praktikum",
+    "description": "Stateless PHP App",
+    "require": {
+        "vlucas/phpdotenv": "^5.7",
+        "aws/aws-sdk-php": "^3.395",
+        "guzzlehttp/guzzle": "^8.2"
+    }
+}
