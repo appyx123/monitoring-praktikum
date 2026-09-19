@@ -74,15 +74,33 @@
             <!-- BAGIAN UPLOAD FOTO PROFIL -->
             <div class="form-group mb-3">
                 <label class="form-label">Ganti Foto Profil (Opsional)</label>
-                <input class="form-control" type="file" name="photo_profil" accept="image/*">
-                <small class="text-muted">File saat ini: <?= $data['ubahdata']['photo_profil'] ?? 'Tidak ada' ?></small>
+                <input class="form-control" type="file" name="photo_profil" accept="image/jpeg,image/png,image/gif,image/webp">
+                <small class="text-muted d-block mt-1">Format: JPG, PNG, GIF, atau WEBP | Maksimal: 5MB</small>
+                <?php if (!empty($data['ubahdata']['photo_profil'])): ?>
+                    <small class="text-muted d-block mt-2">File saat ini: <?= basename($data['ubahdata']['photo_profil']) ?></small>
+                    <div class="form-check mt-1">
+                        <input class="form-check-input" type="checkbox" name="hapus_profil" value="1" id="hapusProfilCheck">
+                        <label class="form-check-label text-danger" for="hapusProfilCheck"><small>Hapus foto profil saat ini (Kembali ke default)</small></label>
+                    </div>
+                <?php else: ?>
+                    <small class="text-muted d-block mt-2">File saat ini: Tidak ada</small>
+                <?php endif; ?>
             </div>
 
             <!-- BAGIAN UPLOAD FOTO TTD -->
             <div class="form-group mb-3">
                 <label class="form-label">Ganti Foto TTD / Signature (Opsional)</label>
-                <input class="form-control" type="file" name="photo_path" accept="image/*">
-                <small class="text-muted">File saat ini: <?= $data['ubahdata']['photo_path'] ?? 'Tidak ada' ?></small>
+                <input class="form-control" type="file" name="photo_path" accept="image/jpeg,image/png,image/gif,image/webp">
+                <small class="text-muted d-block mt-1">Format: JPG, PNG, GIF, atau WEBP | Maksimal: 5MB</small>
+                <?php if (!empty($data['ubahdata']['photo_path'])): ?>
+                    <small class="text-muted d-block mt-2">File saat ini: <?= basename($data['ubahdata']['photo_path']) ?></small>
+                    <div class="form-check mt-1">
+                        <input class="form-check-input" type="checkbox" name="hapus_ttd" value="1" id="hapusTTDCheck">
+                        <label class="form-check-label text-danger" for="hapusTTDCheck"><small>Hapus foto TTD saat ini</small></label>
+                    </div>
+                <?php else: ?>
+                    <small class="text-muted d-block mt-2">File saat ini: Tidak ada</small>
+                <?php endif; ?>
             </div>
             
             <div class="text-center mt-4">
@@ -101,13 +119,14 @@ document.getElementById('formUbahDataAsisten')?.addEventListener('submit', funct
     const checkFile = (input, label) => {
         if (input.files.length > 0) {
             const file = input.files[0];
-            const allowed = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+            const ext = file.name.split('.').pop().toLowerCase();
+            const allowedExt = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
             
             if (file.size > 5 * 1024 * 1024) {
                 alert(`File ${label} terlalu besar! Maksimal 5MB.`);
                 return false;
             }
-            if (!allowed.includes(file.type)) {
+            if (!allowedExt.includes(ext) && !file.type.startsWith('image/')) {
                 alert(`Format file ${label} tidak didukung! Gunakan JPG/PNG/GIF/WEBP.`);
                 return false;
             }

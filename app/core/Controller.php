@@ -104,10 +104,10 @@ class Controller{
         }
 
         // Validasi Ekstensi & Ukuran
-        $ekstensiValid = ['jpg', 'jpeg', 'png', 'webp'];
+        $ekstensiValid = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
         $ekstensiFile = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
         if (!in_array($ekstensiFile, $ekstensiValid)) {
-            return ['status' => false, 'pesan' => 'Format file yang diupload harus JPG/PNG/WEBP'];
+            return ['status' => false, 'pesan' => 'Format file yang diupload harus JPG/PNG/GIF/WEBP'];
         }
 
         if ($file['size'] > 5 * 1024 * 1024) {
@@ -151,13 +151,47 @@ class Controller{
             // Handle support transparansi untuk file PNG
             if ($image !== false) {
                 imagepalettetotruecolor($image);
-                imagealphablending($image, true);
+                imagealphablending($image, false);
+                imagesavealpha($image, true);
+            }
+        } elseif ($ekstensiFile === 'gif') {
+            $image = @imagecreatefromgif($tmpName);
+            if ($image !== false) {
+                imagepalettetotruecolor($image);
+                imagealphablending($image, false);
                 imagesavealpha($image, true);
             }
         }
 
         // Jika berhasil di-load ke memory
         if ($image !== false && $image !== null) {
+            if (!function_exists('imagewebp')) {
+                // FALLBACK: Simpan sesuai ekstensi asli jika imagewebp tidak ada
+                $namaFileBaru = ($customName ? $customName . '_' . $randomHash : bin2hex(random_bytes(16))) . '.' . $ekstensiFile;
+                $fullPath = $targetDirSystem . DIRECTORY_SEPARATOR . $namaFileBaru;
+                
+                $berhasil = false;
+                if ($ekstensiFile === 'jpg' || $ekstensiFile === 'jpeg') {
+                    $berhasil = imagejpeg($image, $fullPath, 80);
+                } elseif ($ekstensiFile === 'png') {
+                    $berhasil = imagepng($image, $fullPath, 8); 
+                } elseif ($ekstensiFile === 'gif') {
+                    $berhasil = imagegif($image, $fullPath);
+                }
+                
+                if ($berhasil) {
+                    imagedestroy($image);
+                    chmod($fullPath, 0644);
+                    return [
+                        'status' => true, 
+                        'nama_file' => str_replace(DIRECTORY_SEPARATOR, '/', $targetDirDB) . '/' . $namaFileBaru
+                    ];
+                } else {
+                    imagedestroy($image);
+                    return ['status' => false, 'pesan' => 'Gagal menyimpan gambar (Fallback)'];
+                }
+            }
+            
             // Konversi dan simpan gambar sebagai file .webp dengan kualitas 80%
             if (imagewebp($image, $fullPath, 80)) {
                 imagedestroy($image); // Hapus memori sementara

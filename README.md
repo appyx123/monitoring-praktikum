@@ -9,151 +9,66 @@
 Aplikasi berbasis web untuk memonitoring kegiatan praktikum, pengelolaan asisten, dosen, serta jadwal mentoring di laboratorium. Dibangun menggunakan **PHP Native** dengan konsep **MVC (Model-View-Controller)**.
 
 ## Fitur Website
-ADMIN:
-Profil : Edit
-Dashboard : Read
-Monitoring : CRUD
-Laporan : Read
-Data Dosen : CRUD
-Data Asisten : CRUD
-Data User : CRUD (Terhubung ke Data Asisten dan Dosen)
-Data Matakuliah : CRUD
-Data Laboratorium : CRUD
-Data Kelas : CRUD
-Data Jurusan : CRUD
-Data Tahun Ajaran : CRUD
+**ADMIN:**
+- Profil : Edit
+- Dashboard : Read
+- Monitoring : CRUD
+- Laporan : Read
+- Data Dosen : CRUD
+- Data Asisten : CRUD
+- Data User : CRUD (Terhubung ke Data Asisten dan Dosen)
+- Data Matakuliah : CRUD
+- Data Laboratorium : CRUD
+- Data Kelas : CRUD
+- Data Jurusan : CRUD
+- Data Tahun Ajaran : CRUD
 
-ASISTEN
-Profil : Edit
-Dashboard : Read
-Monitoring : CRUD
+**ASISTEN:**
+- Profil : Edit
+- Dashboard : Read
+- Monitoring : CRUD
 
-## Struktur Folder (MVC)
+## Struktur Direktori dan File Utama
 ```
 monitoring-praktikum/
-├── app/
-│   ├── config/
-│   │   └── config.php
-│   ├── controllers/
-│   │   ├── Ajaran.php
-│   │   ├── Asisten.php
-│   │   ├── Dosen.php
-│   │   ├── Frekuensi.php
-│   │   ├── Home.php
-│   │   ├── Jurusan.php
-│   │   ├── Kelas.php
-│   │   ├── Laporan.php
-│   │   ├── Login.php
-│   │   ├── Matakuliah.php
-│   │   ├── Mentoring.php
-│   │   ├── Ruangan.php
-│   │   └── User.php
-│   ├── core/
-│   │   ├── App.php
-│   │   ├── Controller.php
-│   │   ├── Database.php
-│   │   ├── Flasher.php
-│   │   └── IIController.php
-│   ├── models/
-│   │   ├── Ajaran_model.php
-│   │   ├── Asisten_model.php
-│   │   ├── Dosen_model.php
-│   │   ├── Frekuensi_model.php
-│   │   ├── Jadwal_model.php
-│   │   ├── Jurusan_model.php
-│   │   ├── Kelas_model.php
-│   │   ├── Laporan_model.php
-│   │   ├── Login_model.php
-│   │   ├── Matakuliah_model.php
-│   │   ├── Mentoring_model.php
-│   │   ├── Ruangan_model.php
-│   │   └── User_model.php
-│   └── views/
-│       ├── Ajaran/
-│       │   ├── index.php
-│       │   ├── tambah_ajaran.php
-│       │   └── ubah_ajaran.php
-│       ├── asisten/
-│       │   ├── index.php
-│       │   ├── tambah_asisten.php
-│       │   └── ubah_asisten.php
-│       ├── dosen/
-│       │   ├── index.php
-│       │   ├── tambah_dosen.php
-│       │   └── ubah_dosen.php
-│       ├── frekuensi/
-│       │   ├── index.php
-│       │   ├── tambah_frekuensi.php
-│       │   └── ubah_frekuensi.php
-│       ├── home/
-│       │   ├── index.php
-│       ├── jurusan/
-│       │   ├── index.php
-│       │   ├── tambah_jurusan.php
-│       │   └── ubah_jurusan.php
-│       ├── kelas/
-│       │   ├── index.php
-│       │   ├── tambah_kelas.php
-│       │   └── ubah_kelas.php
-│       ├── laporan/
-│       │   ├── export_excel_action.php
-│       │   └── index.php
-│       ├── login/
-│       │   ├── index.php
-│       │   └── index1.php
-│       ├── matakuliah/
-│       │   ├── index.php
-│       │   ├── tambah_matakuliah.php
-│       │   └── ubah_matakuliah.php
-│       ├── mentoring/
-│       │   ├── detail.php
-│       │   ├── index.php
-│       │   ├── tambah_mentoring.php
-│       │   └── ubah_mentoring.php
-│       ├── ruangan/
-│       │   ├── index.php
-│       │   ├── tambah_ruangan.php
-│       │   └── ubah_ruangan.php
-│       ├── templates/
-│       │   ├── footer.php
-│       │   ├── header.php
-│       │   ├── sidebar.php
-│       │   └── topbar.php
-│       └── user/
-│       │   ├── index.php
-│       │   ├── tambah_user.php
-│       │   ├── ubah_user.php
-├── public/
+├── app/                  # Folder utama aplikasi (MVC)
+│   ├── config/           # Konfigurasi aplikasi & database
+│   ├── controllers/      # Logika aplikasi (Controller)
+│   ├── core/             # Core MVC framework
+│   ├── models/           # Interaksi dengan database (Model)
+│   └── views/            # Tampilan antarmuka (View)
+├── database/             # File terkait database & migrasi
+│   └── migrations/
+├── docs/                 # Dokumentasi proyek
+│   ├── LAPORAN_AUDIT_DAN_PERBAIKAN.md
+│   └── testing.md
+├── public/               # Asset statis yang dapat diakses publik
 │   ├── css/
 │   ├── img/
 │   ├── js/
 │   └── template/
-├── .gitinitcore
-├── .htaccess
-├── db_monitoring_praktikum-new.sql
-├── index.php
-├── monitoring_praktikum.sql
-├── README.md
-└── temp.sql
+├── .htaccess             # Konfigurasi rewrite rule Apache
+├── index.php             # Entry point utama aplikasi
+└── README.md             # Informasi proyek
 ```
 
 ## Penjelasan Mengenai MVC
 <img width="3999" height="1999" alt="image" src="https://github.com/user-attachments/assets/5f539f9e-14ff-4b3b-aac2-4e770fb1e54b" />
 
 ### 1. Model (Data)
-- Definisi: Komponen yang berhubungan langsung dengan database.
-- Peran Utama: Mengelola data (CRUD: Create, Read, Update, Delete). Model tidak peduli bagaimana data ditampilkan, ia hanya tahu cara mengambil, menyimpan, dan memproses data berdasarkan kueri SQL.
+- **Definisi**: Komponen yang berhubungan langsung dengan database.
+- **Peran Utama**: Mengelola data (CRUD: Create, Read, Update, Delete). Model tidak peduli bagaimana data ditampilkan, ia hanya tahu cara mengambil, menyimpan, dan memproses data berdasarkan kueri SQL.
   
 ### 2. View (Tampilan)
-- Definisi: Komponen yang berisi apa yang dilihat oleh pengguna (User Interface).
-- Peran Utama: Menampilkan data yang dikirim oleh Model melalui Controller ke dalam format HTML/CSS. View tidak boleh memiliki logika yang berat; tugasnya hanya mencetak variabel data.
+- **Definisi**: Komponen yang berisi apa yang dilihat oleh pengguna (User Interface).
+- **Peran Utama**: Menampilkan data yang dikirim oleh Model melalui Controller ke dalam format HTML/CSS. View tidak boleh memiliki logika yang berat; tugasnya hanya mencetak variabel data.
   
 ### 3. Controller (Otak)
-- Definisi: Jembatan atau penghubung antara Model dan View.
-- Peran Utama: Menerima permintaan (request) dari pengguna (misal: klik tombol Filter), meminta data ke Model, lalu mengirimkan hasilnya ke View untuk ditampilkan. Controller mengatur "lalu lintas" logika aplikasi.
+- **Definisi**: Jembatan atau penghubung antara Model dan View.
+- **Peran Utama**: Menerima permintaan (request) dari pengguna (misal: klik tombol Filter), meminta data ke Model, lalu mengirimkan hasilnya ke View untuk ditampilkan. Controller mengatur "lalu lintas" logika aplikasi.
 
 
-##  Role & Akses Login
+## Role & Akses Login
 
 Aplikasi ini memiliki 2 jenis user dengan hak akses berbeda:
 

@@ -106,7 +106,7 @@ $title = $data['judul'] ?? 'Restore Data';
                                             <div class="btn-group btn-group-sm">
                                                 <!-- Tombol Lihat Detail -->
                                                 <button type="button" class="btn btn-info" 
-                                                        data-toggle="modal" data-target="#modal-detail-<?= e($id) ?>">
+                                                        data-bs-toggle="modal" data-bs-target="#modal-detail-<?= e($id) ?>">
                                                     <i class="fas fa-eye"></i> Detail
                                                 </button>
                                                 <!-- Tombol Restore (Redirect ke controller method kembalikan) -->
@@ -127,24 +127,7 @@ $title = $data['judul'] ?? 'Restore Data';
                                         </td>
                                     </tr>
 
-                                    <!-- Modal Detail -->
-                                    <div class="modal fade" id="modal-detail-<?= e($id) ?>" tabindex="-1" role="dialog">
-                                        <div class="modal-dialog modal-lg">
-                                            <div class="modal-content">
-                                                <div class="modal-header bg-info">
-                                                    <h5 class="modal-title text-white">Detail Data JSON</h5>
-                                                    <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
-                                                </div>
-                                                <div class="modal-body">
-                                                    <p><strong>Raw Data JSON:</strong></p>
-                                                    <pre class="bg-light p-3 rounded" style="max-height: 300px; overflow-y: auto; font-size: 12px;"><?= htmlspecialchars(json_encode($isi, JSON_PRETTY_PRINT)) ?></pre>
-                                                </div>
-                                                <div class="modal-footer">
-                                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Tutup</button>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
+
                                 <?php endforeach; ?>
                             </tbody>
                         </table>
@@ -158,3 +141,31 @@ $title = $data['judul'] ?? 'Restore Data';
         </div>
     </div>
 </div>
+
+<!-- Rendering Modals Outside Table untuk Menjaga Struktur HTML -->
+<?php if (!empty($rows)): ?>
+    <?php foreach ($rows as $r): ?>
+        <?php 
+            $isi = json_decode($r['data_json'], true); 
+            $id = $r['id_restore']; 
+        ?>
+        <!-- Modal Detail -->
+        <div class="modal fade" id="modal-detail-<?= e($id) ?>" tabindex="-1" role="dialog">
+            <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                    <div class="modal-header bg-info">
+                        <h5 class="modal-title text-white">Detail Data JSON</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p><strong>Raw Data JSON:</strong></p>
+                        <pre class="bg-light p-3 rounded" style="max-height: 300px; overflow-y: auto; font-size: 12px;"><?= htmlspecialchars(json_encode($isi, JSON_PRETTY_PRINT)) ?></pre>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    <?php endforeach; ?>
+<?php endif; ?>

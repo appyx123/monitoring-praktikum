@@ -1,4 +1,4 @@
-<form id="formTambahAsistenKhusus" action="<?= BASEURL ?>/asisten/tambah" method="post" autocomplete="off" enctype="multipart/form-data">
+<form id="formTambahDataAsisten" action="<?= BASEURL ?>/asisten/tambah" method="post" autocomplete="off" enctype="multipart/form-data">
     <div class="row">
         <div class="col-12">            
             
@@ -92,13 +92,14 @@
 <script>
 // Validasi file upload real-time
 function validateImageFile(input) {
-    const allowedTypes = ['image/jpeg', 'image/png', 'image/gif'];
+    const allowedExts = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
     const maxSize = 5 * 1024 * 1024; // 5MB
     const fieldName = input.name === 'photo_profil' ? 'Foto Profil' : 'Foto TTD';
     
     if (input.files.length === 0) return true;
     
     const file = input.files[0];
+    const ext = file.name.split('.').pop().toLowerCase();
     
     // Cek ukuran
     if (file.size > maxSize) {
@@ -107,9 +108,9 @@ function validateImageFile(input) {
         return false;
     }
     
-    // Cek MIME type
-    if (!allowedTypes.includes(file.type)) {
-        alert(`${fieldName}: Format file tidak valid!\n\nFormat yang diizinkan:\n- JPG / JPEG\n- PNG\n- GIF\n\nFormat Anda: ${file.type || 'tidak terdeteksi'}`);
+    // Cek Ekstensi dan MIME type
+    if (!allowedExts.includes(ext) && !file.type.startsWith('image/')) {
+        alert(`${fieldName}: Format file tidak valid!\n\nFormat yang diizinkan:\n- JPG / JPEG\n- PNG\n- GIF\n- WEBP`);
         input.value = '';
         return false;
     }
@@ -127,7 +128,7 @@ document.querySelector('input[name="photo_path"]').addEventListener('change', fu
 });
 
 // Validasi form submit
-document.getElementById('formTambahAsistenKhusus').addEventListener('submit', function(e) {
+document.getElementById('formTambahDataAsisten').addEventListener('submit', function(e) {
     const form = this;
     
     // Cek select fields tidak boleh kosong

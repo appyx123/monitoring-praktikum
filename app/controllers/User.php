@@ -77,8 +77,10 @@ class User extends Controller {
         $uploadErrors = [];
         $uploadSuccess = [];
 
-        // 2. Upload Foto Profil
-        if ($_FILES['photo_profil']['error'] === UPLOAD_ERR_NO_FILE) {
+        // 2. Upload Foto Profil atau Hapus
+        if (isset($_POST['hapus_profil']) && $_POST['hapus_profil'] == '1') {
+            $data['photo_profil'] = null;
+        } elseif (!isset($_FILES['photo_profil']) || $_FILES['photo_profil']['error'] === UPLOAD_ERR_NO_FILE) {
             $data['photo_profil'] = $asistenLama ? ($asistenLama['photo_profil'] ?? null) : ($userLama['photo_profil'] ?? null);
         } else {
             $uploadProfil = $this->prosesUpload('photo_profil', 'public/img/uploads/', 'profil_' . $id_user);
@@ -91,8 +93,10 @@ class User extends Controller {
             }
         }
 
-        // 3. Upload TTD
-        if ($_FILES['photo_path']['error'] === UPLOAD_ERR_NO_FILE) {
+        // 3. Upload TTD atau Hapus
+        if (isset($_POST['hapus_ttd']) && $_POST['hapus_ttd'] == '1') {
+            $data['photo_path'] = null;
+        } elseif (!isset($_FILES['photo_path']) || $_FILES['photo_path']['error'] === UPLOAD_ERR_NO_FILE) {
             $data['photo_path'] = $asistenLama ? ($asistenLama['photo_path'] ?? null) : ($userLama['photo_path'] ?? null);
         } else {
             $uploadTTD = $this->prosesUpload('photo_path', 'public/img/signature/', 'ttd_' . $id_user);
@@ -119,11 +123,14 @@ class User extends Controller {
         // 5. Update Database (Tabel Asisten)
         $updateAsisten = 0;
         if ($asistenLama) {
+            // Update foto & ttd ke tabel asisten
             $updateAsisten = $this->model('Asisten_model')->updateFilesByUserId(
                 $id_user, 
                 $data['photo_profil'], 
                 $data['photo_path']
             );
+            // Sinkronisasi Nama Asisten
+            $this->model('Asisten_model')->updateNamaByUserId($id_user, $data['nama_user']);
         }
 
         if ($updateUser >= 0 && $updateAsisten >= 0) {
@@ -222,15 +229,26 @@ class User extends Controller {
             'role'      => $userLama['role'] // Cegah manipulasi role sendiri
         ];
 
-        // Proses Upload Foto Profil
+        // Proses Upload Foto Profil atau Hapus
         $photoProfilBaru = null;
-        if (isset($_FILES['photo_profil']) && $_FILES['photo_profil']['error'] === UPLOAD_ERR_OK) {
-            $uploadProfil = $this->prosesUpload('photo_profil', 'public/img/uploads/', 'profil_' . $id_user);
-            if ($uploadProfil['status']) {
-                $photoProfilBaru = $uploadProfil['nama_file'];
-                $_SESSION['photo_profil'] = $photoProfilBaru;
+        $hapusProfil = false;
+        if (isset($_POST['hapus_profil']) && $_POST['hapus_profil'] == '1') {
+            $photoProfilBaru = null;
+            $hapusProfil = true;
+            $_SESSION['photo_profil'] = null;
+        } elseif (isset($_FILES['photo_profil']) && $_FILES['photo_profil']['error'] !== UPLOAD_ERR_NO_FILE) {
+            if ($_FILES['photo_profil']['error'] === UPLOAD_ERR_OK) {
+                $uploadProfil = $this->prosesUpload('photo_profil', 'public/img/uploads/', 'profil_' . $id_user);
+                if ($uploadProfil['status']) {
+                    $photoProfilBaru = $uploadProfil['nama_file'];
+                    $_SESSION['photo_profil'] = $photoProfilBaru;
+                } else {
+                    Flasher::setFlash('Gagal', 'Upload foto gagal: ' . $uploadProfil['pesan'], 'danger');
+                    header('Location: ' . BASEURL . '/user/profil');
+                    exit;
+                }
             } else {
-                Flasher::setFlash('Gagal', 'Upload foto gagal: ' . $uploadProfil['pesan'], 'danger');
+                Flasher::setFlash('Gagal', 'Upload foto gagal: Error kode ' . $_FILES['photo_profil']['error'], 'danger');
                 header('Location: ' . BASEURL . '/user/profil');
                 exit;
             }
@@ -241,14 +259,21 @@ class User extends Controller {
             $_SESSION['nama_user'] = $dataUpdate['nama_user'];
             $_SESSION['username'] = $dataUpdate['username'];
             
-            // Simpan foto ke DB jika ada yang diupload
-            if ($photoProfilBaru) {
-                $asistenLama = $this->model('Asisten_model')->getByUserId($id_user); 
+            // Simpan foto ke DB jika ada yang diupload atau dihapus
+            $asistenLama = $this->model('Asisten_model')->getByUserId($id_user); 
+            
+            if ($photoProfilBaru || $hapusProfil) {
+                // Selalu update mst_user
+                $this->model('User_model')->updateFotoViaUser($id_user, $photoProfilBaru);
+                // Jika dia asisten, update mst_asisten juga
                 if ($asistenLama) {
                     $this->model('Asisten_model')->updateFotoViaUser($id_user, $photoProfilBaru);
-                } else {
-                    $this->model('User_model')->updateFotoViaUser($id_user, $photoProfilBaru);
                 }
+            }
+            
+            // Sinkronisasi Nama Asisten
+            if ($asistenLama) {
+                $this->model('Asisten_model')->updateNamaByUserId($id_user, $dataUpdate['nama_user']);
             }
             
             Flasher::setFlash('Berhasil', 'Profil Anda telah berhasil diperbarui', 'success');

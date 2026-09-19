@@ -49,11 +49,18 @@
                 <!-- EDIT FOTO PROFIL -->
                 <div class="form-group mb-3">
                     <label for="photo_profil" class="form-label">Foto Profil (Admin/Asisten)</label>
-                    <input type="file" class="form-control" name="photo_profil" accept="image/*"> 
+                    <input type="file" class="form-control" name="photo_profil" accept="image/jpeg,image/png,image/gif,image/webp"> 
+                    <small class="text-muted d-block mt-1">Format: JPG, PNG, GIF, atau WEBP | Maksimal: 5MB</small>
                     <div class="mt-2">
-                        <small class="text-muted d-block">File saat ini: <?= basename($currPhoto ?? 'default.webp') ?></small>
-                        <?php if(!empty($currPhoto)): ?>
-                            <img src="<?= BASEURL . '/' . $currPhoto ?>" alt="Profil" class="img-thumbnail" width="80">
+                        <?php if(!empty($currPhoto) && $currPhoto !== 'default.webp'): ?>
+                            <small class="text-muted d-block">File saat ini: <?= basename($currPhoto) ?></small>
+                            <img src="<?= BASEURL . '/' . $currPhoto ?>" alt="Profil" class="img-thumbnail mt-1 mb-2" width="80">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="hapus_profil" value="1" id="hapusProfilUser">
+                                <label class="form-check-label text-danger" for="hapusProfilUser"><small>Hapus foto profil saat ini</small></label>
+                            </div>
+                        <?php else: ?>
+                            <small class="text-muted d-block">File saat ini: default.webp</small>
                         <?php endif; ?>
                     </div>
                 </div>
@@ -61,11 +68,18 @@
                 <!-- EDIT FOTO TTD -->
                 <div class="form-group mb-4">
                     <label for="photo_path" class="form-label">Tanda Tangan Digital (TTD)</label>
-                    <input type="file" class="form-control" name="photo_path" accept="image/*"> 
+                    <input type="file" class="form-control" name="photo_path" accept="image/jpeg,image/png,image/gif,image/webp"> 
+                    <small class="text-muted d-block mt-1">Format: JPG, PNG, GIF, atau WEBP | Maksimal: 5MB</small>
                     <div class="mt-2">
-                        <small class="text-muted d-block">File saat ini: <?= basename($currTTD ?? 'Tidak ada') ?></small>
                         <?php if(!empty($currTTD)): ?>
-                            <img src="<?= BASEURL . '/' . $currTTD ?>" alt="TTD" class="img-thumbnail" width="120">
+                            <small class="text-muted d-block">File saat ini: <?= basename($currTTD) ?></small>
+                            <img src="<?= BASEURL . '/' . $currTTD ?>" alt="TTD" class="img-thumbnail mt-1 mb-2" width="120">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="hapus_ttd" value="1" id="hapusTTDUser">
+                                <label class="form-check-label text-danger" for="hapusTTDUser"><small>Hapus foto TTD saat ini</small></label>
+                            </div>
+                        <?php else: ?>
+                            <small class="text-muted d-block">File saat ini: Tidak ada</small>
                         <?php endif; ?>
                     </div>
                 </div>

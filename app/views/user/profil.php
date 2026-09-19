@@ -36,8 +36,14 @@
                                             <label for="photo_profil" class="btn btn-sm btn-outline-primary" style="cursor:pointer;">
                                                 <i class="fas fa-camera"></i> Ganti Foto
                                             </label>
-                                            <input type="file" id="photo_profil" name="photo_profil" accept="image/*" style="display:none;" onchange="previewImage(this)">
-                                            <small class="d-block text-muted mt-1">Maks 2MB (JPG/PNG)</small>
+                                            <input type="file" id="photo_profil" name="photo_profil" accept="image/jpeg,image/png,image/gif,image/webp" style="display:none;" onchange="previewImage(this)">
+                                            <small class="d-block text-muted mt-1">Maks 5MB (JPG/PNG/WEBP)</small>
+                                            <?php if (!empty($data['user']['photo_profil']) && $data['user']['photo_profil'] !== 'public/img/user.webp'): ?>
+                                                <div class="form-check mt-2">
+                                                    <input class="form-check-input" type="checkbox" name="hapus_profil" value="1" id="hapusProfilCheckSaya">
+                                                    <label class="form-check-label text-danger" for="hapusProfilCheckSaya"><small>Hapus foto saat ini</small></label>
+                                                </div>
+                                            <?php endif; ?>
                                         </div>
                                     </div>
                                     

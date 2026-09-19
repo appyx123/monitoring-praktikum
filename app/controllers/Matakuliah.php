@@ -74,10 +74,17 @@ class Matakuliah extends Controller {
         $this->isAdmin();
         
         if (isset($_FILES['file_excel']['name']) && $_FILES['file_excel']['name'] != '') {
+            if ($_FILES['file_excel']['error'] !== UPLOAD_ERR_OK) {
+                Flasher::setFlash('Gagal mengupload file. Error kode: ' . $_FILES['file_excel']['error'], 'Error', 'danger');
+                header('Location: ' . BASEURL . '/matakuliah');
+                exit;
+            }
+
             $allowed_ext = ['csv'];
             $ext = pathinfo($_FILES['file_excel']['name'], PATHINFO_EXTENSION);
             
             if (in_array(strtolower($ext), $allowed_ext)) {
+                ini_set('auto_detect_line_endings', TRUE);
                 $file = fopen($_FILES['file_excel']['tmp_name'], 'r');
                 $successCount = 0;
                 $failCount = 0;

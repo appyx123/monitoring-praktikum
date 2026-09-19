@@ -1,4 +1,4 @@
-<form id="formTambahFrekuensiKhusus" action="<?= BASEURL ?>/Frekuensi/tambah" method="post" autocomplete="off">
+<form id="formTambahDataFrekuensi" action="<?= BASEURL ?>/Frekuensi/tambah" method="post" autocomplete="off">
     <div class="row">
         <div class="col-12">
             <div class="form-group mb-1">

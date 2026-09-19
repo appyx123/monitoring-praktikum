@@ -339,12 +339,17 @@
         $.get(url, function(data) {
             $('.modal-body').html(data);
             const formID = `#formTambahData${jenis}`;
-            $(formID).append(`
-                <div class="text-center mt-3">
-                    <button type="submit" class="btn btn-primary">Tambah</button>
-                    <button type="button" class="btn btn-secondary ml-2" data-bs-dismiss="modal">Batal</button>
-                </div>
-            `);
+            const formObj = $(formID);
+            
+            // Cerdas: Hanya tambahkan tombol jika form belum memiliki tombol submit
+            if (formObj.length > 0 && formObj.find('button[type="submit"]').length === 0) {
+                formObj.append(`
+                    <div class="text-center mt-3">
+                        <button type="submit" class="btn btn-primary">Tambah</button>
+                        <button type="button" class="btn btn-secondary ml-2" data-bs-dismiss="modal">Batal</button>
+                    </div>
+                `);
+            }
             
             // clear footer
             $('.tombol').html('');

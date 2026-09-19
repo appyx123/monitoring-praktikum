@@ -170,7 +170,9 @@ class Asisten extends Controller {
         }
 
         // 5. Handle Foto Profil
-        if ($_FILES['photo_profil']['error'] === UPLOAD_ERR_NO_FILE) {
+        if (isset($_POST['hapus_profil']) && $_POST['hapus_profil'] == '1') {
+            $data['photo_profil'] = null;
+        } elseif (!isset($_FILES['photo_profil']) || $_FILES['photo_profil']['error'] === UPLOAD_ERR_NO_FILE) {
             $data['photo_profil'] = $asistenLama['photo_profil'];
         } else {
             $uploadProfil = $this->prosesUpload('photo_profil', 'public/img/uploads/', $namaBersih . '_profil');
@@ -184,7 +186,9 @@ class Asisten extends Controller {
         }
 
         // 6. Handle Foto TTD
-        if ($_FILES['photo_path']['error'] === UPLOAD_ERR_NO_FILE) {
+        if (isset($_POST['hapus_ttd']) && $_POST['hapus_ttd'] == '1') {
+            $data['photo_path'] = null;
+        } elseif (!isset($_FILES['photo_path']) || $_FILES['photo_path']['error'] === UPLOAD_ERR_NO_FILE) {
             $data['photo_path'] = $asistenLama['photo_path'];
         } else {
             $uploadTTD = $this->prosesUpload('photo_path', 'public/img/signature/', $namaBersih . '_ttd');
@@ -256,10 +260,17 @@ class Asisten extends Controller {
         $this->isAdmin();
         
         if (isset($_FILES['file_excel']['name']) && $_FILES['file_excel']['name'] != '') {
+            if ($_FILES['file_excel']['error'] !== UPLOAD_ERR_OK) {
+                Flasher::setFlash('Gagal mengupload file. Error kode: ' . $_FILES['file_excel']['error'], 'Error', 'danger');
+                header('Location: ' . BASEURL . '/asisten');
+                exit;
+            }
+
             $allowed_ext = ['csv'];
             $ext = pathinfo($_FILES['file_excel']['name'], PATHINFO_EXTENSION);
             
             if (in_array(strtolower($ext), $allowed_ext)) {
+                ini_set('auto_detect_line_endings', TRUE);
                 $file = fopen($_FILES['file_excel']['tmp_name'], 'r');
                 $successCount = 0;
                 $failCount = 0;

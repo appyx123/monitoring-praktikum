@@ -251,7 +251,17 @@ class Asisten_model {
         $this->db->bind('foto', $foto);
         $this->db->bind('ttd', $ttd);
         $this->db->bind('id_user', $id_user);
+        
+        $this->db->execute();
+        return $this->db->rowCount();
+    }
 
-        return $this->db->execute();
+    public function updateNamaByUserId($id_user, $nama) {
+        $query = "UPDATE mst_asisten SET nama_asisten = :nama WHERE id_user = :id_user";
+        $this->db->query($query);
+        $this->db->bind('nama', $nama);
+        $this->db->bind('id_user', $id_user);
+        $this->db->execute();
+        return $this->db->rowCount();
     }
 }
