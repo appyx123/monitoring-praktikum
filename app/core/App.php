@@ -8,6 +8,43 @@ class App {
     protected $params = [];     
 
     public function __construct() {
+        if (session_status() === PHP_SESSION_NONE) {
+            $isSecure = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') 
+                     || (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https');
+
+            ini_set('session.gc_maxlifetime', 86400);
+            session_set_cookie_params([
+                'lifetime' => 86400,
+                'path'     => '/',
+                'domain'   => '',
+                'secure'   => $isSecure,
+                'httponly' => true,
+                'samesite' => 'Strict'
+            ]);
+            session_start();
+        }
+
+        if (empty($_SESSION['csrf_token'])) {
+            $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+        }
+
+        // --- GLOBAL CSRF PROTECTION ON POST ---
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $token = $_POST['csrf_token'] ?? $_SERVER['HTTP_X_CSRF_TOKEN'] ?? '';
+            $sessionToken = $_SESSION['csrf_token'] ?? '';
+
+            if (empty($sessionToken) || !hash_equals($sessionToken, $token)) {
+                http_response_code(403);
+                if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) === 'xmlhttprequest') {
+                    header('Content-Type: application/json');
+                    echo json_encode(['status' => false, 'pesan' => 'Invalid or expired CSRF token.']);
+                } else {
+                    echo "<!DOCTYPE html><html><head><title>403 Forbidden</title></head><body style='font-family:sans-serif;text-align:center;padding:50px;'><h1>403 Forbidden</h1><p>Invalid or missing CSRF token.</p><p><a href='javascript:history.back()'>Kembali</a></p></body></html>";
+                }
+                exit;
+            }
+        }
+
         $url = $this->parseURL();
 
         // 1. Ambil nama Controller

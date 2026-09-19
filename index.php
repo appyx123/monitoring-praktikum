@@ -1,20 +1,9 @@
 <?php
 ini_set('display_errors', 'Off');
 ini_set('log_errors', 'On');
+ini_set('error_log', 'php://stderr');
 error_reporting(E_ALL);
 
-// session_start();
-
-// $url = "http://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]";
-// $url = explode("/", $url);
-
-// $folder = '/master-php-mvc/';
-
-//    if (!isset($_SESSION['nama'])) {
-//         header("Location: http://localhost/master-php-mvc/Login");
-//     } else {
-
-//         $id = $_SESSION['id'];
 require_once 'app/config/config.php';
 
 if (defined('MAINTENANCE_MODE') && MAINTENANCE_MODE === true) {
@@ -23,11 +12,19 @@ if (defined('MAINTENANCE_MODE') && MAINTENANCE_MODE === true) {
     exit;
 }
 
-// Global Error Handlers for 500 Internal Server Error
+// Global Error Handlers for 500 Internal Server Error (Logged to Container stderr)
 function customExceptionHandler($e) {
     if (ob_get_level()) ob_end_clean();
+    $msg = sprintf(
+        "[%s] FATAL EXCEPTION: %s in %s:%d\nStack Trace:\n%s\n",
+        date('Y-m-d H:i:s'),
+        $e->getMessage(),
+        $e->getFile(),
+        $e->getLine(),
+        $e->getTraceAsString()
+    );
+    file_put_contents('php://stderr', $msg);
     http_response_code(500);
-    // You can log $e->getMessage() here if needed
     require_once 'app/views/errors/500.php';
     exit;
 }
@@ -40,6 +37,14 @@ function customErrorHandler($errno, $errstr, $errfile, $errline) {
 function customShutdownHandler() {
     $error = error_get_last();
     if ($error !== null && in_array($error['type'], [E_ERROR, E_CORE_ERROR, E_COMPILE_ERROR, E_PARSE])) {
+        $msg = sprintf(
+            "[%s] FATAL SHUTDOWN: %s in %s:%d\n",
+            date('Y-m-d H:i:s'),
+            $error['message'],
+            $error['file'],
+            $error['line']
+        );
+        file_put_contents('php://stderr', $msg);
         if (ob_get_level()) ob_end_clean();
         http_response_code(500);
         require_once 'app/views/errors/500.php';

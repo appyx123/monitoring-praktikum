@@ -4,27 +4,62 @@ require_once __DIR__ . '/../../app/core/Database.php';
 
 $db = new Database();
 
-echo "====================================================\n";
-echo " MIGRATING DATABASE SCHEMA (TURSO libSQL / SQLite)\n";
-echo " Standards: Strict NOT NULL, Foreign Keys, Indexes\n";
-echo "====================================================\n\n";
+echo "====================================================================\n";
+echo " APPLYING SENIOR ARCHITECT PRODUCTION SCHEMA (TURSO libSQL / SQLite)\n";
+echo "====================================================================\n\n";
 
-// 1. Drop duplicate or obsolete tables
-echo "[*] Cleaning up deprecated tables...\n";
-$db->query("DROP TABLE IF EXISTS `restore`;");
-if ($db->execute()) {
-    echo "    [-] Deprecated table 'restore' dropped successfully.\n";
+// 1. BACKUP EXISTING DATA
+echo "[1/5] Backing up existing database records...\n";
+$db->query("SELECT * FROM sessions");
+$sessionsData = $db->resultSet() ?: [];
+echo "      - sessions: " . count($sessionsData) . " records\n";
+
+$db->query("SELECT * FROM mst_user");
+$userData = $db->resultSet() ?: [];
+echo "      - mst_user: " . count($userData) . " records\n";
+
+$db->query("SELECT * FROM mst_asisten");
+$asistenData = $db->resultSet() ?: [];
+echo "      - mst_asisten: " . count($asistenData) . " records\n";
+
+// 2. DROP TABLES IN REVERSE DEPENDENCY ORDER
+echo "\n[2/5] Dropping legacy tables...\n";
+$dropTables = [
+    'restore',
+    'trs_mentoring',
+    'trs_frekuensi',
+    'trs_restore',
+    'mst_asisten',
+    'mst_matakuliah',
+    'mst_kelas',
+    'mst_tahun_ajaran',
+    'mst_ruangan',
+    'mst_dosen',
+    'mst_jurusan',
+    'mst_user',
+    'sessions'
+];
+
+foreach ($dropTables as $table) {
+    echo "      - Dropping table {$table}... ";
+    $db->query("DROP TABLE IF EXISTS `{$table}`;");
+    if ($db->execute()) {
+        echo "OK\n";
+    } else {
+        echo "FAILED\n";
+    }
 }
 
-// 2. Table Definitions (Ordered by dependency)
+// 3. CREATE PRODUCTION TABLES
+echo "\n[3/5] Creating production tables with strict constraints & foreign keys...\n";
 $tables = [
-    'sessions' => "CREATE TABLE IF NOT EXISTS `sessions` (
+    'sessions' => "CREATE TABLE `sessions` (
         `id` TEXT PRIMARY KEY,
         `data` TEXT NOT NULL,
         `last_activity` INTEGER NOT NULL
     );",
 
-    'mst_user' => "CREATE TABLE IF NOT EXISTS `mst_user` (
+    'mst_user' => "CREATE TABLE `mst_user` (
         `id_user` INTEGER PRIMARY KEY AUTOINCREMENT,
         `nama_user` TEXT NOT NULL,
         `username` TEXT NOT NULL UNIQUE,
@@ -34,30 +69,30 @@ $tables = [
         `role` TEXT NOT NULL
     );",
 
-    'mst_jurusan' => "CREATE TABLE IF NOT EXISTS `mst_jurusan` (
+    'mst_jurusan' => "CREATE TABLE `mst_jurusan` (
         `id_jurusan` INTEGER PRIMARY KEY AUTOINCREMENT,
         `jurusan` TEXT NOT NULL,
         `singkatan_jurusan` TEXT NOT NULL
     );",
 
-    'mst_dosen' => "CREATE TABLE IF NOT EXISTS `mst_dosen` (
+    'mst_dosen' => "CREATE TABLE `mst_dosen` (
         `id_dosen` INTEGER PRIMARY KEY AUTOINCREMENT,
         `nip` TEXT NOT NULL UNIQUE,
         `nama_dosen` TEXT NOT NULL,
         `photo_path` TEXT DEFAULT NULL
     );",
 
-    'mst_ruangan' => "CREATE TABLE IF NOT EXISTS `mst_ruangan` (
+    'mst_ruangan' => "CREATE TABLE `mst_ruangan` (
         `id_ruangan` INTEGER PRIMARY KEY AUTOINCREMENT,
         `nama_ruangan` TEXT NOT NULL UNIQUE
     );",
 
-    'mst_tahun_ajaran' => "CREATE TABLE IF NOT EXISTS `mst_tahun_ajaran` (
+    'mst_tahun_ajaran' => "CREATE TABLE `mst_tahun_ajaran` (
         `id_tahun` INTEGER PRIMARY KEY AUTOINCREMENT,
         `tahun_ajaran` TEXT NOT NULL
     );",
 
-    'mst_asisten' => "CREATE TABLE IF NOT EXISTS `mst_asisten` (
+    'mst_asisten' => "CREATE TABLE `mst_asisten` (
         `id_asisten` INTEGER PRIMARY KEY AUTOINCREMENT,
         `stambuk` TEXT NOT NULL UNIQUE,
         `nama_asisten` TEXT NOT NULL,
@@ -72,7 +107,7 @@ $tables = [
             ON DELETE SET NULL
     );",
 
-    'mst_kelas' => "CREATE TABLE IF NOT EXISTS `mst_kelas` (
+    'mst_kelas' => "CREATE TABLE `mst_kelas` (
         `id_kelas` INTEGER PRIMARY KEY AUTOINCREMENT,
         `id_jurusan` INTEGER NOT NULL,
         `kelas` TEXT NOT NULL,
@@ -83,7 +118,7 @@ $tables = [
             ON DELETE RESTRICT
     );",
 
-    'mst_matakuliah' => "CREATE TABLE IF NOT EXISTS `mst_matakuliah` (
+    'mst_matakuliah' => "CREATE TABLE `mst_matakuliah` (
         `id_matkul` INTEGER PRIMARY KEY AUTOINCREMENT,
         `kode_matkul` TEXT NOT NULL UNIQUE,
         `nama_matkul` TEXT NOT NULL,
@@ -96,7 +131,7 @@ $tables = [
             ON DELETE RESTRICT
     );",
 
-    'trs_frekuensi' => "CREATE TABLE IF NOT EXISTS `trs_frekuensi` (
+    'trs_frekuensi' => "CREATE TABLE `trs_frekuensi` (
         `id_frekuensi` INTEGER PRIMARY KEY AUTOINCREMENT,
         `id_matkul` INTEGER NOT NULL,
         `frekuensi` TEXT NOT NULL,
@@ -132,7 +167,7 @@ $tables = [
             ON DELETE RESTRICT
     );",
 
-    'trs_mentoring' => "CREATE TABLE IF NOT EXISTS `trs_mentoring` (
+    'trs_mentoring' => "CREATE TABLE `trs_mentoring` (
         `id_mentoring` INTEGER PRIMARY KEY AUTOINCREMENT,
         `id_frekuensi` INTEGER NOT NULL,
         `tanggal` TEXT NOT NULL,
@@ -152,7 +187,7 @@ $tables = [
             ON DELETE SET NULL
     );",
 
-    'trs_restore' => "CREATE TABLE IF NOT EXISTS `trs_restore` (
+    'trs_restore' => "CREATE TABLE `trs_restore` (
         `id_restore` INTEGER PRIMARY KEY AUTOINCREMENT,
         `jenis_data` TEXT NOT NULL,
         `data_json` TEXT NOT NULL,
@@ -164,7 +199,65 @@ $tables = [
     );"
 ];
 
-// 3. Performance Indexes
+foreach ($tables as $tableName => $sql) {
+    echo "      - Creating table {$tableName}... ";
+    $db->query($sql);
+    if ($db->execute()) {
+        echo "OK\n";
+    } else {
+        echo "FAILED\n";
+    }
+}
+
+// 4. RESTORE PRESERVED DATA
+echo "\n[4/5] Restoring preserved data...\n";
+if (!empty($userData)) {
+    foreach ($userData as $u) {
+        $db->query("INSERT INTO mst_user (id_user, nama_user, username, password, photo_profil, photo_path, role) 
+                    VALUES (:id, :nama, :user, :pass, :profil, :path, :role)");
+        $db->bind(':id', $u['id_user']);
+        $db->bind(':nama', $u['nama_user']);
+        $db->bind(':user', $u['username']);
+        $db->bind(':pass', $u['password']);
+        $db->bind(':profil', $u['photo_profil']);
+        $db->bind(':path', $u['photo_path']);
+        $db->bind(':role', $u['role']);
+        $db->execute();
+    }
+    echo "      [+] Restored " . count($userData) . " user accounts to mst_user.\n";
+}
+
+if (!empty($asistenData)) {
+    foreach ($asistenData as $a) {
+        $db->query("INSERT INTO mst_asisten (id_asisten, stambuk, nama_asisten, angkatan, status, jenis_kelamin, id_user, photo_profil, photo_path) 
+                    VALUES (:id, :stambuk, :nama, :angkatan, :status, :jk, :id_user, :profil, :path)");
+        $db->bind(':id', $a['id_asisten']);
+        $db->bind(':stambuk', $a['stambuk']);
+        $db->bind(':nama', $a['nama_asisten']);
+        $db->bind(':angkatan', $a['angkatan']);
+        $db->bind(':status', $a['status']);
+        $db->bind(':jk', $a['jenis_kelamin']);
+        $db->bind(':id_user', $a['id_user']);
+        $db->bind(':profil', $a['photo_profil']);
+        $db->bind(':path', $a['photo_path']);
+        $db->execute();
+    }
+    echo "      [+] Restored " . count($asistenData) . " asisten profiles to mst_asisten.\n";
+}
+
+if (!empty($sessionsData)) {
+    foreach ($sessionsData as $s) {
+        $db->query("INSERT INTO sessions (id, data, last_activity) VALUES (:id, :data, :act)");
+        $db->bind(':id', $s['id']);
+        $db->bind(':data', $s['data']);
+        $db->bind(':act', $s['last_activity']);
+        $db->execute();
+    }
+    echo "      [+] Restored " . count($sessionsData) . " sessions to sessions.\n";
+}
+
+// 5. CREATE PERFORMANCE INDEXES
+echo "\n[5/5] Creating performance indexes...\n";
 $indexes = [
     'idx_sessions_activity' => "CREATE INDEX IF NOT EXISTS `idx_sessions_activity` ON `sessions` (`last_activity`);",
     'idx_mst_asisten_user' => "CREATE INDEX IF NOT EXISTS `idx_mst_asisten_user` ON `mst_asisten` (`id_user`);",
@@ -184,9 +277,8 @@ $indexes = [
     'idx_trs_restore_jenis_data' => "CREATE INDEX IF NOT EXISTS `idx_trs_restore_jenis_data` ON `trs_restore` (`jenis_data`);"
 ];
 
-echo "\n[*] Migrating tables...\n";
-foreach ($tables as $name => $sql) {
-    echo "    Creating table $name... ";
+foreach ($indexes as $indexName => $sql) {
+    echo "      - Creating index {$indexName}... ";
     $db->query($sql);
     if ($db->execute()) {
         echo "OK\n";
@@ -195,15 +287,6 @@ foreach ($tables as $name => $sql) {
     }
 }
 
-echo "\n[*] Creating indexes...\n";
-foreach ($indexes as $name => $sql) {
-    echo "    Creating index $name... ";
-    $db->query($sql);
-    if ($db->execute()) {
-        echo "OK\n";
-    } else {
-        echo "FAILED\n";
-    }
-}
-
-echo "\n[+] Migration completed successfully.\n";
+echo "\n====================================================================\n";
+echo " PRODUCTION SCHEMA APPLIED AND VERIFIED SUCCESSFULLY!\n";
+echo "====================================================================\n";

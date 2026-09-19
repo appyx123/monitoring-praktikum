@@ -379,6 +379,7 @@
 
         <!-- Form -->
         <form action="<?= BASEURL?>/Login/login" method="post" autocomplete="off">
+            <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?? '' ?>">
 
             <div class="form-group">
                 <label for="username">Username / Email</label>

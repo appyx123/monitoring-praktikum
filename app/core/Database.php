@@ -4,6 +4,9 @@ use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
 
 class Database {
+    private static ?Database $instance = null;
+    private static ?Client $sharedClient = null;
+
     private $httpClient;
     private $dbUrl;
     private $authToken;
@@ -30,15 +33,25 @@ class Database {
             $this->dbUrl = 'https://' . substr($this->dbUrl, 8);
         }
 
-        $this->httpClient = new Client([
-            'base_uri' => $this->dbUrl,
-            'timeout'  => 10.0,
-            'headers'  => [
-                'Authorization' => 'Bearer ' . $this->authToken,
-                'Content-Type'  => 'application/json',
-                'Accept'        => 'application/json'
-            ]
-        ]);
+        if (self::$sharedClient === null) {
+            self::$sharedClient = new Client([
+                'base_uri' => $this->dbUrl,
+                'timeout'  => 5.0,
+                'headers'  => [
+                    'Authorization' => 'Bearer ' . $this->authToken,
+                    'Content-Type'  => 'application/json',
+                    'Accept'        => 'application/json'
+                ]
+            ]);
+        }
+        $this->httpClient = self::$sharedClient;
+    }
+
+    public static function getInstance(): self {
+        if (self::$instance === null) {
+            self::$instance = new self();
+        }
+        return self::$instance;
     }
 
     public function query($query) {

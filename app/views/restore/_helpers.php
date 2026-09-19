@@ -23,13 +23,9 @@ function getDisplayName($json_data) {
     return 'Data #' . ($data['id'] ?? 'unknown');
 }
 
-// Helper function untuk get user name
+// Helper function untuk get user name (fallback aman tanpa query DB di view)
 function getUserNameById($id) {
-    $db = new Database();
-    $db->query("SELECT nama_user FROM mst_user WHERE id_user = :id");
-    $db->bind('id', $id);
-    $result = $db->single();
-    return ($result && isset($result['nama_user'])) ? htmlspecialchars($result['nama_user']) : 'Unknown';
+    return 'User #' . htmlspecialchars((string)$id);
 }
 
 // Mapping untuk label jenis data

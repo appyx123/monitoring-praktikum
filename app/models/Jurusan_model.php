@@ -60,12 +60,12 @@ class Jurusan_model{
             $restoreModel->saveToRestore('mst_jurusan', $jurusan, $deletedBy);
 
             // 1. Hapus Mentoring terkait frekuensi di jurusan ini
-            $this->db->query("DELETE FROM trs_mentoring WHERE id_frekuensi IN (SELECT id_frekuensi FROM trs_frekuensi WHERE id_jurusan = :id)");
+            $this->db->query("DELETE FROM trs_mentoring WHERE id_frekuensi IN (SELECT id_frekuensi FROM trs_frekuensi WHERE id_matkul IN (SELECT id_matkul FROM mst_matakuliah WHERE id_jurusan = :id))");
             $this->db->bind(':id', $id);
             $this->db->execute();
 
             // 2. Hapus Frekuensi di jurusan ini
-            $this->db->query("DELETE FROM trs_frekuensi WHERE id_jurusan = :id");
+            $this->db->query("DELETE FROM trs_frekuensi WHERE id_matkul IN (SELECT id_matkul FROM mst_matakuliah WHERE id_jurusan = :id)");
             $this->db->bind(':id', $id);
             $this->db->execute();
 

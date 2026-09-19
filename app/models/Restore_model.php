@@ -8,7 +8,10 @@ class Restore_model {
     }
 
     public function getAll() {
-        $this->db->query("SELECT * FROM trs_restore ORDER BY deleted_at DESC");
+        $this->db->query("SELECT r.*, u.nama_user AS deleted_by_name 
+                          FROM trs_restore r 
+                          LEFT JOIN mst_user u ON r.deleted_by = u.id_user 
+                          ORDER BY r.deleted_at DESC");
         return $this->db->resultSet();
     }
 
@@ -189,16 +192,15 @@ class Restore_model {
                     if ($this->db->single()) return -1;
 
                     $this->db->query("INSERT INTO trs_frekuensi 
-                                        (id_frekuensi, frekuensi, id_matkul, id_dosen, id_kelas, id_tahun, id_jurusan, id_ruangan, hari, jam_mulai, jam_selesai, id_asisten1, id_asisten2)
+                                        (id_frekuensi, frekuensi, id_matkul, id_dosen, id_kelas, id_tahun, id_ruangan, hari, jam_mulai, jam_selesai, id_asisten1, id_asisten2)
                                       VALUES 
-                                        (:id, :frek, :matkul, :dosen, :kelas, :tahun, :jurusan, :ruang, :hari, :jm, :js, :as1, :as2)");
+                                        (:id, :frek, :matkul, :dosen, :kelas, :tahun, :ruang, :hari, :jm, :js, :as1, :as2)");
                     $this->db->bind(':id',      $data['id_frekuensi']);
                     $this->db->bind(':frek',    $data['frekuensi']);
                     $this->db->bind(':matkul',  $data['id_matkul']);
                     $this->db->bind(':dosen',   $data['id_dosen']);
                     $this->db->bind(':kelas',   $data['id_kelas']);
                     $this->db->bind(':tahun',   $data['id_tahun']);
-                    $this->db->bind(':jurusan', $data['id_jurusan']);
                     $this->db->bind(':ruang',   $data['id_ruangan']);
                     $this->db->bind(':hari',    $data['hari']);
                     $this->db->bind(':jm',      $data['jam_mulai']);

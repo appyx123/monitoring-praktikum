@@ -6,12 +6,26 @@ class Controller{
 
     public function __construct(){
         if (session_status() === PHP_SESSION_NONE) {
-            // Konfigurasi session agar bertahan selama 24 jam (86400 detik)
+            $isSecure = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') 
+                     || (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https');
+
             ini_set('session.gc_maxlifetime', 86400);
-            session_set_cookie_params(86400);
+            session_set_cookie_params([
+                'lifetime' => 86400,
+                'path'     => '/',
+                'domain'   => '',
+                'secure'   => $isSecure,
+                'httponly' => true,
+                'samesite' => 'Strict'
+            ]);
             session_start(); 
         }
-        $this->db = new Database();
+
+        if (empty($_SESSION['csrf_token'])) {
+            $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+        }
+
+        $this->db = Database::getInstance();
 
         // Logika Remember Me (Auto-Login)
         if (!isset($_SESSION['id_user']) && isset($_COOKIE['id_user']) && isset($_COOKIE['key'])) {
@@ -135,13 +149,20 @@ class Controller{
             $bucket = defined('B2_BUCKET_NAME') ? B2_BUCKET_NAME : '';
             $mimeType = mime_content_type($file['tmp_name']) ?: 'application/octet-stream';
 
+            // Stream resource to keep RAM footprint O(1) in Docker container
+            $stream = fopen($file['tmp_name'], 'r');
+
             $result = $s3->putObject([
                 'Bucket'      => $bucket,
                 'Key'         => $s3Key,
-                'SourceFile'  => $file['tmp_name'],
+                'Body'        => $stream,
                 'ContentType' => $mimeType,
                 'ACL'         => 'public-read'
             ]);
+
+            if (is_resource($stream)) {
+                fclose($stream);
+            }
 
             // Tentukan URL publik Backblaze B2
             if (defined('B2_PUBLIC_URL') && !empty(B2_PUBLIC_URL)) {

@@ -25,7 +25,7 @@ class Laporan_model {
                   JOIN mst_tahun_ajaran t ON f.id_tahun = t.id_tahun
                   JOIN mst_kelas k ON f.id_kelas = k.id_kelas
                   JOIN mst_ruangan r ON f.id_ruangan = r.id_ruangan
-                  JOIN mst_jurusan j ON f.id_jurusan = j.id_jurusan
+                  JOIN mst_jurusan j ON m.id_jurusan = j.id_jurusan
                   JOIN mst_dosen d ON f.id_dosen = d.id_dosen
                   LEFT JOIN mst_asisten a1 ON f.id_asisten1 = a1.id_asisten
                   LEFT JOIN mst_asisten a2 ON f.id_asisten2 = a2.id_asisten";

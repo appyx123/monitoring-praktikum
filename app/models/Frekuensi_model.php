@@ -9,18 +9,17 @@ class Frekuensi_model{
     
     public function tambah($data) {
         $query = "INSERT INTO trs_frekuensi
-                    (frekuensi, id_jurusan, id_matkul, id_tahun, id_kelas, 
+                    (frekuensi, id_matkul, id_tahun, id_kelas, 
                     hari, jam_mulai, jam_selesai, id_ruangan, 
                     id_dosen, id_asisten1, id_asisten2) 
                 VALUES 
-                    (:frekuensi, :id_jurusan, :id_matkul, :id_tahun, :id_kelas, 
+                    (:frekuensi, :id_matkul, :id_tahun, :id_kelas, 
                     :hari, :jam_mulai, :jam_selesai, :id_ruangan, 
                     :id_dosen, :id_asisten1, :id_asisten2)";
         
         $this->db->query($query);
 
         $this->db->bind('frekuensi', $data['frekuensi']);
-        $this->db->bind('id_jurusan', $data['id_jurusan']);
         $this->db->bind('id_matkul', $data['id_matkul']);
         $this->db->bind('id_tahun', $data['id_tahun']);
         $this->db->bind('id_kelas', $data['id_kelas']);
@@ -48,7 +47,6 @@ class Frekuensi_model{
                             SET 
                               frekuensi = :frekuensi,
                               id_matkul = :id_matkul, 
-                              id_jurusan = :id_jurusan, 
                               id_tahun = :id_tahun, 
                               id_kelas = :id_kelas, 
                               hari = :hari, 
@@ -62,7 +60,6 @@ class Frekuensi_model{
                               id_frekuensi = :id_frekuensi;");
     
         $this->db->bind('frekuensi', $data['frekuensi']);
-        $this->db->bind('id_jurusan', $data['id_jurusan']);
         $this->db->bind('id_matkul', $data['id_matkul']);
         $this->db->bind('id_tahun', $data['id_tahun']);
         $this->db->bind('id_kelas', $data['id_kelas']);
@@ -108,9 +105,9 @@ class Frekuensi_model{
                         LEFT JOIN
                             mst_asisten a2 ON trs_frekuensi.id_asisten2 = a2.id_asisten
                         JOIN
-                            mst_jurusan ON trs_frekuensi.id_jurusan = mst_jurusan.id_jurusan
-                        JOIN
                             mst_matakuliah ON trs_frekuensi.id_matkul = mst_matakuliah.id_matkul
+                        JOIN
+                            mst_jurusan ON mst_matakuliah.id_jurusan = mst_jurusan.id_jurusan
                         JOIN
                             mst_tahun_ajaran ON trs_frekuensi.id_tahun = mst_tahun_ajaran.id_tahun
                         JOIN
@@ -182,7 +179,10 @@ class Frekuensi_model{
     }
 
     public function ubah($id){
-        $this->db->query("SELECT * FROM trs_frekuensi WHERE id_frekuensi = :id");
+        $this->db->query("SELECT trs_frekuensi.*, mst_matakuliah.id_jurusan 
+                          FROM trs_frekuensi 
+                          JOIN mst_matakuliah ON trs_frekuensi.id_matkul = mst_matakuliah.id_matkul 
+                          WHERE trs_frekuensi.id_frekuensi = :id");
         $this->db->bind("id", $id);
 
         return $this->db->single(); 
@@ -315,9 +315,9 @@ class Frekuensi_model{
                         LEFT JOIN
                             mst_asisten a2 ON trs_frekuensi.id_asisten2 = a2.id_asisten
                         JOIN
-                            mst_jurusan ON trs_frekuensi.id_jurusan = mst_jurusan.id_jurusan
-                        JOIN
                             mst_matakuliah ON trs_frekuensi.id_matkul = mst_matakuliah.id_matkul
+                        JOIN
+                            mst_jurusan ON mst_matakuliah.id_jurusan = mst_jurusan.id_jurusan
                         JOIN
                             mst_tahun_ajaran ON trs_frekuensi.id_tahun = mst_tahun_ajaran.id_tahun
                         JOIN
@@ -400,9 +400,9 @@ class Frekuensi_model{
                         LEFT JOIN
                             mst_asisten a2 ON trs_frekuensi.id_asisten2 = a2.id_asisten
                         JOIN
-                            mst_jurusan ON trs_frekuensi.id_jurusan = mst_jurusan.id_jurusan
-                        JOIN
                             mst_matakuliah ON trs_frekuensi.id_matkul = mst_matakuliah.id_matkul
+                        JOIN
+                            mst_jurusan ON mst_matakuliah.id_jurusan = mst_jurusan.id_jurusan
                         JOIN
                             mst_tahun_ajaran ON trs_frekuensi.id_tahun = mst_tahun_ajaran.id_tahun
                         JOIN
@@ -436,9 +436,9 @@ class Frekuensi_model{
                         LEFT JOIN
                             mst_asisten a2 ON trs_frekuensi.id_asisten2 = a2.id_asisten
                         JOIN
-                            mst_jurusan ON trs_frekuensi.id_jurusan = mst_jurusan.id_jurusan
-                        JOIN
                             mst_matakuliah ON trs_frekuensi.id_matkul = mst_matakuliah.id_matkul
+                        JOIN
+                            mst_jurusan ON mst_matakuliah.id_jurusan = mst_jurusan.id_jurusan
                         JOIN
                             mst_tahun_ajaran ON trs_frekuensi.id_tahun = mst_tahun_ajaran.id_tahun
                         JOIN
